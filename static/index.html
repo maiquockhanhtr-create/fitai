@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FITAI — Phòng thử đồ AI</title>
+  <style>
+    :root {
+      --ink: #17243b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --blue: #4267ee;
+      --blue-hover: #3254d6;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --ok-bg: #ecfdf5;
+      --ok-ink: #065f46;
+      --warn-bg: #fffbeb;
+      --warn-ink: #92400e;
+      --err-bg: #fef2f2;
+      --err-ink: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.5 Inter, system-ui, -apple-system, Arial, sans-serif;
+    }
+    header {
+      background: #14233d;
+      color: white;
+      padding: 18px max(20px, calc((100% - 1120px)/2));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .logo { font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+    .logo span { color: #91aaff; }
+    .badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      color: #e2e8f0;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+    .dot.ok { background: #34d399; }
+    .dot.warn { background: #fbbf24; }
+    main { max-width: 1120px; margin: 28px auto; padding: 0 18px; }
+    .intro { margin-bottom: 18px; }
+    .intro h1 { font-size: 28px; margin: 0 0 6px; }
+    .intro p { color: var(--muted); margin: 0; }
+    .banner {
+      padding: 13px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      line-height: 1.55;
+      background: var(--ok-bg);
+      color: var(--ok-ink);
+      border: 1px solid #a7f3d0;
+    }
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(27, 43, 72, 0.04);
+    }
+    h2 { font-size: 16px; margin: 0 0 14px; }
+    .upload {
+      border: 1.5px dashed #bac6dc;
+      border-radius: 13px;
+      min-height: 255px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 16px;
+      background: #fafcff;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload:hover, .upload.dragover { border-color: var(--blue); background: #f0f4ff; }
+    .upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload img { max-width: 100%; max-height: 320px; object-fit: contain; border-radius: 8px; }
+    .upload strong { display: block; margin: 8px 0 4px; color: var(--ink); }
+    .upload span { font-size: 12px; color: var(--muted); display: block; }
+    .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .field select, .field input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: white;
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 20px;
+      background: var(--blue);
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover:not(:disabled) { background: var(--blue-hover); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn.secondary { background: #edf1f8; color: #34425a; }
+    .btn.secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .result {
+      min-height: 330px;
+      display: grid;
+      place-items: center;
+      background: #fafcff;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 14px;
+      text-align: center;
+    }
+    .result img { max-width: 100%; max-height: 540px; object-fit: contain; border-radius: 9px; }
+    .result p { color: var(--muted); font-size: 13px; margin: 0; }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #dbeafe;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status { font-size: 13px; color: var(--muted); margin-top: 12px; min-height: 20px; }
+    .status.error { color: var(--err-ink); font-weight: 600; }
+    .status.success { color: var(--ok-ink); font-weight: 600; }
+    .privacy {
+      margin-top: 18px;
+      background: #fff8e8;
+      color: #76571b;
+      border-radius: 12px;
+      padding: 12px 15px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 26px; }
+    @media (max-width: 760px) {
+      .layout, .options { grid-template-columns: 1fr; }
+      .intro h1 { font-size: 24px; }
+      .upload { min-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">FIT<span>AI</span></div>
+    <div class="badge"><span class="dot" id="apiDot"></span><span id="apiText">Đang kiểm tra hệ thống...</span></div>
+  </header>
+
+  <main>
+    <div class="intro">
+      <h1>Thử đồ trước khi mua cùng AI.</h1>
+      <p>Tải ảnh người mặc và ảnh trang phục để xem mô phỏng mặc thử chân thực.</p>
+    </div>
+
+    <div class="banner" id="limitBanner">
+      Hệ thống bảo vệ lượt gọi tự động đang bật để đảm bảo ổn định cho mọi người dùng.
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>01 · Ảnh người mặc</h2>
+        <label class="upload" id="personBox">
+          <input id="person" type="file" accept="image/png,image/jpeg,image/webp">
+          <div id="personHint">
+            <strong>＋ Tải ảnh người mặc</strong>
+            <span>Kéo thả hoặc nhấn để chọn ảnh (JPG, PNG, WEBP · tối đa 12 MB).</span>
+          </div>
+        </label>
+        <div class="status">Nên dùng ảnh chụp thẳng, rõ dáng người và đủ sáng.</div>
+      </section>
+
+      <section class="panel">
+        <h2>02 · Trang phục muốn thử</h2>
+        <label class="upload" id="garmentBox">
+          <input id="garment" type="file" accept="image/png,image/jpeg,image/webp">
+          <div id="garmentHint">
+            <strong>＋ Tải ảnh quần áo</strong>
+            <span>Ưu tiên ảnh trang phục rõ dáng để AI tái tạo chuẩn nhất.</span>
+          </div>
+        </label>
+        <div class="status">Hỗ trợ ảnh sản phẩm nền trơn hoặc ảnh trang phục rõ nét.</div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:18px">
+      <h2>03 · Tùy chỉnh thử đồ</h2>
+      <div class="options">
+        <div class="field">
+          <label for="category">Loại trang phục</label>
+          <select id="category">
+            <option value="auto">Tự nhận diện</option>
+            <option value="tops">Áo / Áo khoác</option>
+            <option value="bottoms">Quần / Váy</option>
+            <option value="one-pieces">Đầm / Jumpsuit</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mode">Chế độ xử lý</label>
+          <select id="mode">
+            <option value="fast">Nhanh</option>
+            <option value="balanced" selected>Cân bằng</option>
+            <option value="quality">Chất lượng cao</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="prompt">Ghi chú thêm (tùy chọn)</label>
+          <input id="prompt" type="text" maxlength="300" placeholder="Ví dụ: giữ nguyên màu và phom áo">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="tryBtn">✦ Tạo ảnh thử đồ AI</button>
+        <button class="btn secondary" id="resetBtn" type="button">Làm lại</button>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px">
+        <h2 style="margin:0">04 · Kết quả thử đồ</h2>
+        <a id="download" class="btn secondary" href="#" download="fitai-result.jpg" style="display:none;text-decoration:none">⬇ Tải ảnh kết quả</a>
+      </div>
+      <div class="result" id="result">
+        <p>Ảnh kết quả sẽ hiển thị tại đây.<br>Thời gian xử lý thường khoảng 15–45 giây.</p>
+      </div>
+    </section>
+
+    <div class="privacy">
+      <b>Lưu ý:</b> Chỉ tải ảnh của bạn hoặc người đã đồng ý. Ảnh được xử lý phục vụ lượt thử đồ và không lưu trữ lâu dài trên máy chủ.
+    </div>
+  </main>
+
+  <footer>FITAI · Virtual Try-On Platform</footer>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    let personFile = null;
+    let garmentFile = null;
+
+    async function checkHealth() {
+      const dot = $('apiDot');
+      const text = $('apiText');
+      const banner = $('limitBanner');
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        dot.className = 'dot ok';
+        text.textContent = 'Hệ thống sẵn sàng';
+        const mins = Math.max(1, Math.round((data.rate_limit_window_sec || 600) / 60));
+        banner.textContent = `Giới hạn sử dụng: tối đa ${data.rate_limit_per_window || 8} lượt / ${mins} phút cho mỗi người dùng để giữ dịch vụ ổn định.`;
+      } catch {
+        dot.className = 'dot warn';
+        text.textContent = 'Đang kết nối máy chủ';
+      }
+    }
+
+    function handleFile(file, hintId, kind) {
+      if (!file) return;
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        alert('Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP.');
+        return;
+      }
+      if (file.size > 12 * 1024 * 1024) {
+        alert('Dung lượng mỗi ảnh tối đa 12 MB.');
+        return;
+      }
+      if (kind === 'person') personFile = file;
+      else garmentFile = file;
+
+      const url = URL.createObjectURL(file);
+      const safeName = file.name.replace(/[&<>"]/g, '');
+      $(hintId).innerHTML = `<img src="${url}" alt="Xem trước"><strong>${safeName}</strong><span>Nhấn hoặc kéo ảnh khác vào khung để đổi</span>`;
+    }
+
+    function bindUpload(inputId, boxId, hintId, kind) {
+      const input = $(inputId);
+      const box = $(boxId);
+      input.addEventListener('change', () => handleFile(input.files[0], hintId, kind));
+      ['dragenter', 'dragover'].forEach(evt => box.addEventListener(evt, e => { e.preventDefault(); box.classList.add('dragover'); }));
+      ['dragleave', 'drop'].forEach(evt => box.addEventListener(evt, e => { e.preventDefault(); box.classList.remove('dragover'); }));
+      box.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f, hintId, kind); });
+    }
+
+    bindUpload('person', 'personBox', 'personHint', 'person');
+    bindUpload('garment', 'garmentBox', 'garmentHint', 'garment');
+
+    $('tryBtn').addEventListener('click', async () => {
+      if (!personFile || !garmentFile) {
+        $('status').className = 'status error';
+        $('status').textContent = 'Vui lòng tải đủ cả ảnh người mặc và ảnh trang phục.';
+        return;
+      }
+
+      const btn = $('tryBtn');
+      btn.disabled = true;
+      $('status').className = 'status';
+      $('status').textContent = 'Đang xử lý ảnh thử đồ...';
+      $('result').innerHTML = `<div><div class="spinner"></div><p>AI đang xử lý trang phục và dáng người.<br>Vui lòng đợi khoảng 15–45 giây...</p></div>`;
+      $('download').style.display = 'none';
+
+      const fd = new FormData();
+      fd.append('person', personFile);
+      fd.append('garment', garmentFile);
+      fd.append('category', $('category').value);
+      fd.append('mode', $('mode').value);
+      fd.append('prompt', $('prompt').value);
+
+      try {
+        const r = await fetch('/api/tryon', { method: 'POST', body: fd });
+        let data = {};
+        try { data = await r.json(); } catch {}
+        if (!r.ok) throw new Error(data.detail || 'Không thể tạo ảnh thử đồ.');
+
+        $('result').innerHTML = `<img src="${data.image}" alt="Kết quả thử đồ AI">`;
+        $('download').href = data.image;
+        $('download').style.display = 'inline-block';
+        $('status').className = 'status success';
+        $('status').textContent = 'Hoàn tất! Bạn có thể tải ảnh kết quả về máy.';
+      } catch (e) {
+        $('status').className = 'status error';
+        $('status').textContent = 'Lỗi: ' + e.message;
+        $('result').innerHTML = '<p>Chưa tạo được ảnh. Vui lòng thử lại sau.</p>';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    $('resetBtn').addEventListener('click', () => {
+      personFile = null;
+      garmentFile = null;
+      $('person').value = '';
+      $('garment').value = '';
+      $('personHint').innerHTML = '<strong>＋ Tải ảnh người mặc</strong><span>Kéo thả hoặc nhấn để chọn ảnh (JPG, PNG, WEBP · tối đa 12 MB).</span>';
+      $('garmentHint').innerHTML = '<strong>＋ Tải ảnh quần áo</strong><span>Ưu tiên ảnh trang phục rõ dáng để AI tái tạo chuẩn nhất.</span>';
+      $('result').innerHTML = '<p>Ảnh kết quả sẽ hiển thị tại đây.<br>Thời gian xử lý thường khoảng 15–45 giây.</p>';
+      $('status').className = 'status';
+      $('status').textContent = 'Đã làm mới.';
+      $('download').style.display = 'none';
+    });
+
+    checkHealth();
+  </script>
+</body>
+</html>
